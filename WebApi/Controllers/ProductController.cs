@@ -17,15 +17,17 @@ namespace WebApi.Controllers
             _productService = productService;
         }
         [HttpPost("CreateProduct")]
-        public async Task<IActionResult> CreateProduct(Product product)
+        public async Task<IActionResult> CreateProduct([FromForm] Product product, IFormFile[] attachments)
         {
-          var result = await _productService.Create(product);
+          var result = await _productService.CreateProduct(product,attachments);
 
             if(result.Success)
-            return Ok(result);
+                return Ok(result);
             else
                 return BadRequest(result.Message);
         }
+
+
 
         [HttpGet("GetAllProduct")]
         public IActionResult GetAllProduct()
@@ -49,10 +51,10 @@ namespace WebApi.Controllers
                 return BadRequest(result.Message);
         }
 
-        [HttpGet("GetProductById")]
-        public async Task<IActionResult> GetProductById(int id)
+        [HttpGet("GetProductById/{productId}")]
+        public  IActionResult GetProductById(int productId)
         {
-            var result= await _productService.GetById(id);
+            var result=  _productService.GetById(productId);
 
             if (result.Success)
                 return Ok(result);

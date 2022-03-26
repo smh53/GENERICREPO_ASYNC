@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataAccess.EntityFramework
 {
-    public class GenericRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
+    public class GenericRepository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
     {
         private readonly GenericRepoContext _context;
         private DbSet<TEntity> _entities = null;
@@ -34,6 +34,7 @@ namespace DataAccess.EntityFramework
 
         public async Task<IResult> Create(TEntity entity)
         {
+          
           await _context.Set<TEntity>().AddAsync(entity);
           await  _context.SaveChangesAsync();
             return new SuccessResult();
@@ -41,21 +42,25 @@ namespace DataAccess.EntityFramework
 
         public async Task<IResult> Delete(int id)
         {
-            var entity = await GetById(id);
+            var entity =  GetById(id);
             _context.Set<TEntity>().Remove(entity.Data);
             await _context.SaveChangesAsync();
             return new SuccessResult();
         }
 
-        public IDataResult<IQueryable<TEntity>> GetAll()
+        public virtual IDataResult<IQueryable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter = null)
         {
+            var result = filter ==  null ?
+                    _context.Set<TEntity>().AsNoTracking():
+                     _context.Set<TEntity>().Where(filter).AsNoTracking();
 
-            return new SuccessDataResult<IQueryable<TEntity>>(_context.Set<TEntity>().AsNoTracking());
+            return new SuccessDataResult<IQueryable<TEntity>>(result);
         }
 
-        public async Task<IDataResult<TEntity>> GetById(int id)
+        public virtual  IDataResult<TEntity> GetById(int id)
         {
-            return  new  SuccessDataResult<TEntity>(await _context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(f=>f.Id == id));
+            var result = _context.Set<TEntity>().AsNoTracking().FirstOrDefault(f => f.Id == id);
+            return  new  SuccessDataResult<TEntity>(result);
         }
 
         public async Task<IResult> Update(int id, TEntity entity)
@@ -69,5 +74,7 @@ namespace DataAccess.EntityFramework
         {
             return Entities.FromSqlRaw(sql);
         }
+
+        
     }
 }
