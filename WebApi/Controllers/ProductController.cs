@@ -12,20 +12,23 @@ namespace WebApi.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        public ProductController(IProductService productService)
+        private readonly IProductAttachmentService _productAttachmentService;
+        public ProductController(IProductService productService, IProductAttachmentService productAttachmentService)
         {
             _productService = productService;
+            _productAttachmentService = productAttachmentService;
         }
         [HttpPost("CreateProduct")]
-        public async Task<IActionResult> CreateProduct([FromForm] Product product, IFormFile[] attachments)
+        public async Task<IActionResult> CreateProduct([FromForm] Product product)
         {
-          var result = await _productService.CreateProduct(product,attachments);
-
+          var result = await _productService.Create(product);
+            
             if(result.Success)
                 return Ok(result);
             else
                 return BadRequest(result.Message);
         }
+
 
 
 
@@ -73,8 +76,8 @@ namespace WebApi.Controllers
                 return BadRequest(result.Message);
         }
 
-        [HttpPut("UpdateProduct/{productId}")]
-        public async Task<IActionResult> UpdateProduct(int productId, Product product)
+        [HttpPut("UpdateProduct")]
+        public async Task<IActionResult> UpdateProduct(int productId, [FromForm] Product product)
         {
            
 
@@ -85,6 +88,21 @@ namespace WebApi.Controllers
             else
                 return BadRequest(result.Message);
         }
+
+        [HttpPut("UpdateProductAttachment")]
+        public async Task<IActionResult> UpdateProductAttachment(int productAttachmentId, [FromForm] ProductAttachment productAttachment)
+        {
+
+
+            var result = await _productAttachmentService.Update(productAttachmentId, productAttachment);
+
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result.Message);
+        }
+
+
 
     }
 }

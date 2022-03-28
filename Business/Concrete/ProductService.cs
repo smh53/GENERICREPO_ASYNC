@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.Utilities.FileUpload;
 using Core.Utilities.Results;
 using DataAccess.Context;
 using DataAccess.Entities.Product;
@@ -16,39 +17,49 @@ namespace Business.Concrete
 {
     public class ProductService : GenericRepository<Product>, IProductService
     {
-     
+       
         public ProductService(GenericRepoContext context) : base(context)
         {
            
         }
 
-        public async Task<IResult> CreateProduct(Product product, IFormFile[] attachments)
-        {
-            
-            if (attachments != null && attachments.Length > 0)
+        public override async Task<IResult> Create(Product product)
+        {          
+          
+            if(product.Files != null && product.Files.Length > 0)
             {
                 var productAttachments = new List<ProductAttachment>();
-                foreach (var attachment in attachments)
+                var uploadedfileList = FileUpload.MultipleAttachmentUpload(product.Files, "Product");
+                foreach (var uploadedFile in uploadedfileList)
                 {
-                    string attachmentType = Path.GetExtension(attachment.FileName);
-
-                    var attachmentName = String.Concat(DateTime.Now.Millisecond.ToString(), "-", attachment.FileName);
-
-                    var saveAttachment = Path.Combine("Uploads/Product", attachmentName);
-                    var databaseAttachment = Path.Combine("Uploads/Product", attachmentName);
-                    var stream = new FileStream(saveAttachment, FileMode.Create);
-                    attachment.CopyTo(stream); stream.Close();
-
-                    productAttachments.Add(new ProductAttachment { File = databaseAttachment, FileName = attachmentName, FileType = attachmentType });
+                    productAttachments.Add(new ProductAttachment { FileName = uploadedFile.FileName, FileType = uploadedFile.FileType, FilePath = uploadedFile.FilePath });
                 }
                 product.ProductAttachments = productAttachments;
             }
-             var result = await Create(product);
+            await base.Create(product);
+            
+            return new SuccessResult();
+        }
 
-            if(result.Success)
-                return new SuccessResult();
-            else
-                return new ErrorResult();
+        public override async Task<IResult> Update(int productId, Product product)
+        {
+
+            if (product.Files != null && product.Files.Length > 0)
+            {
+                var productAttachments = new List<ProductAttachment>();
+                var uploadedfileList = FileUpload.MultipleAttachmentUpload(product.Files, "Product");
+                foreach (var uploadedFile in uploadedfileList)
+                {
+                    productAttachments.Add(new ProductAttachment { FileName = uploadedFile.FileName, FileType = uploadedFile.FileType, FilePath = uploadedFile.FilePath });
+                }
+                product.ProductAttachments = productAttachments;
+            }
+
+
+            await base.Update(productId,product);
+
+           
+            return new SuccessResult();
         }
 
         public override IDataResult<IQueryable<Product>> GetAll(Expression<Func<Product, bool>> filter = null)

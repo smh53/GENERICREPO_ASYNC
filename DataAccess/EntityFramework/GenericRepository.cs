@@ -32,7 +32,7 @@ namespace DataAccess.EntityFramework
             return new SuccessDataResult<TEntity>(result);
         }
 
-        public async Task<IResult> Create(TEntity entity)
+        public virtual async Task<IResult> Create(TEntity entity)
         {
           
           await _context.Set<TEntity>().AddAsync(entity);
@@ -53,17 +53,19 @@ namespace DataAccess.EntityFramework
             var result = filter ==  null ?
                     _context.Set<TEntity>().AsNoTracking():
                      _context.Set<TEntity>().Where(filter).AsNoTracking();
-
+            
             return new SuccessDataResult<IQueryable<TEntity>>(result);
         }
 
         public virtual  IDataResult<TEntity> GetById(int id)
         {
             var result = _context.Set<TEntity>().AsNoTracking().FirstOrDefault(f => f.Id == id);
+            
+            
             return  new  SuccessDataResult<TEntity>(result);
         }
 
-        public async Task<IResult> Update(int id, TEntity entity)
+        public virtual async Task<IResult> Update(int id, TEntity entity)
         {
             _context.Set<TEntity>().Update(entity);
             await _context.SaveChangesAsync();
