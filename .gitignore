@@ -370,3 +370,5 @@ FodyWeavers.xsd
 /DataAccess/Migrations/20220328195926_imageUploadTestBetav1.cs
 /DataAccess/Migrations/20220330103319_AddedBasicSectionEntity.Designer.cs
 /DataAccess/Migrations/20220330103319_AddedBasicSectionEntity.cs
+/DataAccess/Migrations/20220330170908_AuthImplementation.Designer.cs
+/DataAccess/Migrations/20220330170908_AuthImplementation.cs
