@@ -13,9 +13,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<GenericRepoContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection")));
+builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductAttachmentService, ProductAttachmentService>();
-builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<ISectionService, SectionService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
 ﻿using DataAccess.Entities.Product;
+using DataAccess.Entities.Section;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace DataAccess.Context
         }
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Section> Sections { get; set; }
        
 
     }

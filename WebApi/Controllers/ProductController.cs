@@ -102,6 +102,17 @@ namespace WebApi.Controllers
                 return BadRequest(result.Message);
         }
 
+        [HttpDelete("DeleteProductAttachment/{productAttachmentId}")]
+        public async Task<IActionResult> DeleteProductAttachment(int productAttachmentId)
+        {
+            var result = await _productAttachmentService.Delete(productAttachmentId);
+
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result.Message);
+        }
+
 
 
     }

@@ -81,6 +81,32 @@ namespace DataAccess.Migrations
                     b.ToTable("ProductAttachment");
                 });
 
+            modelBuilder.Entity("DataAccess.Entities.Section.Section", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("InsertDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("InsertTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SectionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sections");
+                });
+
             modelBuilder.Entity("DataAccess.Entities.Product.ProductAttachment", b =>
                 {
                     b.HasOne("DataAccess.Entities.Product.Product", null)

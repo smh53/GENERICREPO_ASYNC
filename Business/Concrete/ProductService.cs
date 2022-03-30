@@ -25,6 +25,7 @@ namespace Business.Concrete
 
         public override async Task<IResult> Create(Product product)
         {          
+
           
             if(product.Files != null && product.Files.Length > 0)
             {

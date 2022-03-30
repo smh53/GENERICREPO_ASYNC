@@ -14,8 +14,7 @@ namespace Business.Abstract
     {
         Task<IDataResult<string>> GetFirstProductName();
 
-        //Task<IResult> CreateProduct(Product product, IFormFile[] attachments);
-        //Task<IResult> UpdateProduct(int productId, Product product, IFormFile[] attachments);
+
       
         
 
