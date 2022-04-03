@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.Constants;
 using Core.Utilities.Results;
 using DataAccess.Context;
 using DataAccess.DTOs;
@@ -28,6 +29,30 @@ namespace Business.Concrete
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+        }
+
+        public async Task<IResult> ChangePassword(ChangePasswordDto updatePassword)
+        {
+            var user = await _userManager.FindByNameAsync(updatePassword.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, updatePassword.OldPassword))
+            {
+               await _userManager.ChangePasswordAsync(user,updatePassword.OldPassword,updatePassword.NewPassword);
+                return new SuccessResult(ResultMessages.AuthorizationMessages.SuccessChangePassword);
+            }
+            return new ErrorResult(ResultMessages.AuthorizationMessages.ErrorChangePassword);
+
+        }
+        
+        public async Task<IResult> ChangeRole(ChangeRoleDto updaterole)
+        {
+            var user = await _userManager.FindByNameAsync(updaterole.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, updaterole.Password))
+            {
+              await _userManager.RemoveFromRoleAsync(user, updaterole.CurrentRole);
+              await _userManager.AddToRoleAsync(user, updaterole.NewRole);
+                return new SuccessResult();
+            }
+            return new ErrorResult();
         }
 
         public async Task<IDataResult<IdentityResult>> CreateRole(IdentityRole role)
@@ -102,6 +127,25 @@ namespace Business.Concrete
             }
             await _userManager.AddToRoleAsync(user, registerUser.RoleName);
             return new SuccessDataResult<RegisterResponseDto>(new RegisterResponseDto { IsSuccessfulRegistration = true });
+        }
+
+        public async Task<IResult> UpdateUser(UpdateUserDto updateUser)
+        {
+            var user = await _userManager.FindByNameAsync(updateUser.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, updateUser.Password))
+            {
+                var updatedUser = new User()
+                {
+                    Name = updateUser.FirstName,
+                    Surname = updateUser.LastName,
+                    Email = updateUser.Email,
+                    UserName = updateUser.UserName,                    
+                };               
+                await _userManager.UpdateAsync(updatedUser);
+                return new SuccessResult();
+                
+            }
+            return new ErrorResult();
         }
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)

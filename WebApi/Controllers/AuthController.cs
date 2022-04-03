@@ -44,5 +44,38 @@ namespace WebApi.Controllers
 
 
         }
+
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto updateUser)
+        {
+            var result = await _authService.UpdateUser(updateUser);
+
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result.Message);
+        }
+
+        [HttpPut("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto updatePassword)
+        {
+            var result = await _authService.ChangePassword(updatePassword);
+
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result.Message);
+        }
+
+        [HttpPut("ChangeRole")]
+        public async Task<IActionResult> ChangeRole([FromBody] ChangeRoleDto updateRole)
+        {
+            var result = await _authService.ChangeRole(updateRole);
+
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result.Message);
+        }
     }
 }

@@ -18,5 +18,9 @@ namespace Business.Abstract
         Task<IDataResult<RegisterResponseDto>> Register(RegisterDto registerUser);
 
         Task<IDataResult<IdentityResult>> CreateRole(IdentityRole role);
+
+        Task<IResult> ChangePassword(ChangePasswordDto updatePassword);
+        Task<IResult> UpdateUser(UpdateUserDto updateUser);
+        Task<IResult> ChangeRole(ChangeRoleDto updaterole);
     }
 }
