@@ -12,7 +12,7 @@ namespace DataAccess.EntityFramework
 {
     public interface IRepository<TEntity>
     {
-        IDataResult<IQueryable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter = null);
+        IDataResult<IQueryable<TEntity>> GetAll(Expression<Func<TEntity, bool>>? filter = null);
         IDataResult<TEntity> GetById(int id); 
 
         Task <IResult> Create(TEntity entity);

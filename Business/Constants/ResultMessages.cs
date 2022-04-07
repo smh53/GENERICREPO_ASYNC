@@ -8,10 +8,10 @@ namespace Business.Constants
 {
     public static class ResultMessages
     {
-       public class AuthorizationMessages
+       public static class AuthorizationMessages
         {
-            public static string SuccessChangePassword = "Password changed successfully";
-            public static string ErrorChangePassword = "This user does not exist or you entered wrong password";
+            public const string SuccessChangePassword = "Password changed successfully";
+            public const string ErrorChangePassword = "This user does not exist or you entered wrong password";
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Business.Concrete
 
         public async Task<IResult> ChangePassword(ChangePasswordDto updatePassword)
         {
-            var user = await _userManager.FindByNameAsync(updatePassword.UserName);
+            var user = await _userManager.FindByEmailAsync(updatePassword.Email);
             if (user != null && await _userManager.CheckPasswordAsync(user, updatePassword.OldPassword))
             {
                await _userManager.ChangePasswordAsync(user,updatePassword.OldPassword,updatePassword.NewPassword);
@@ -45,7 +45,7 @@ namespace Business.Concrete
         
         public async Task<IResult> ChangeRole(ChangeRoleDto updaterole)
         {
-            var user = await _userManager.FindByNameAsync(updaterole.UserName);
+            var user = await _userManager.FindByEmailAsync(updaterole.Email);
             if (user != null && await _userManager.CheckPasswordAsync(user, updaterole.Password))
             {
               await _userManager.RemoveFromRoleAsync(user, updaterole.CurrentRole);
@@ -100,8 +100,9 @@ namespace Business.Concrete
 
         public async Task<IDataResult<RegisterResponseDto>> Register(RegisterDto registerUser)
         {
-            if (registerUser == null)
+            if (registerUser.FirstName == null || registerUser.LastName == null)
                 return new ErrorDataResult<RegisterResponseDto>(new RegisterResponseDto { IsSuccessfulRegistration = false });
+            
 
             var user = new User()
             {
@@ -131,17 +132,17 @@ namespace Business.Concrete
 
         public async Task<IResult> UpdateUser(UpdateUserDto updateUser)
         {
-            var user = await _userManager.FindByNameAsync(updateUser.UserName);
+            if(updateUser.FirstName == null || updateUser.LastName == null)
+                return new ErrorResult();
+            var user = await _userManager.FindByEmailAsync(updateUser.Email);
             if (user != null && await _userManager.CheckPasswordAsync(user, updateUser.Password))
             {
-                var updatedUser = new User()
-                {
-                    Name = updateUser.FirstName,
-                    Surname = updateUser.LastName,
-                    Email = updateUser.Email,
-                    UserName = updateUser.UserName,                    
-                };               
-                await _userManager.UpdateAsync(updatedUser);
+                     
+                user.UserName = updateUser.UserName;
+                user.Name = updateUser.FirstName;
+                user.Surname = updateUser.LastName;
+
+                await _userManager.UpdateAsync(user);
                 return new SuccessResult();
                 
             }

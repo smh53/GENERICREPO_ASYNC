@@ -36,9 +36,9 @@ namespace WebApi.Controllers
         public IActionResult GetAllProduct()
         {
             var result =  _productService.GetAll();
-
+            
             if (result.Success)
-                return Ok(result);
+                return Ok(result.Data.ToList());
             else
                 return BadRequest(result.Message);
         }

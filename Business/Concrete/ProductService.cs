@@ -42,7 +42,7 @@ namespace Business.Concrete
             return new SuccessResult();
         }
 
-        public override async Task<IResult> Update(int productId, Product product)
+        public override async Task<IResult> Update(int id, Product product)
         {
 
             if (product.Files != null && product.Files.Length > 0)
@@ -57,13 +57,13 @@ namespace Business.Concrete
             }
 
 
-            await base.Update(productId,product);
+            await base.Update(id,product);
 
            
             return new SuccessResult();
         }
 
-        public override IDataResult<IQueryable<Product>> GetAll(Expression<Func<Product, bool>> filter = null)
+        public override IDataResult<IQueryable<Product>> GetAll(Expression<Func<Product, bool>>? filter = null)
         {
             var result =  TableNoTracking.Include(f => f.ProductAttachments);
             return new SuccessDataResult<IQueryable<Product>>(result);
@@ -72,7 +72,9 @@ namespace Business.Concrete
         public async Task<IDataResult<string>> GetFirstProductName()
         {
             var result =await Table.FirstOrDefaultAsync();
-            
+
+            if (result == null)
+                return new ErrorDataResult<string>();
 
             return  new SuccessDataResult<string>(result.Name," ");
         }
@@ -80,6 +82,9 @@ namespace Business.Concrete
         {
 
             var result = TableNoTracking.Include(f => f.ProductAttachments).FirstOrDefault(f => f.Id == id);
+            if (result == null)
+                return new ErrorDataResult<Product>();
+
             return new SuccessDataResult<Product>(result);
         }
 

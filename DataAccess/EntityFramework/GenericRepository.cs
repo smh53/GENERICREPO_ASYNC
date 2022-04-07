@@ -14,7 +14,7 @@ namespace DataAccess.EntityFramework
     public class GenericRepository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
     {
         private readonly GenericRepoContext _context;
-        private DbSet<TEntity> _entities = null;
+        private DbSet<TEntity>? _entities = null;
 
         public GenericRepository(GenericRepoContext context)
         {
@@ -29,7 +29,10 @@ namespace DataAccess.EntityFramework
         public async Task<IDataResult<TEntity>> Get(Expression<Func<TEntity, bool>> filter)
         {
             var result = await Entities.SingleOrDefaultAsync(filter);
-            return new SuccessDataResult<TEntity>(result);
+            if (result != null)
+                return new SuccessDataResult<TEntity>(result);
+
+            return new ErrorDataResult<TEntity>();
         }
 
         public virtual async Task<IResult> Create(TEntity entity)
@@ -48,7 +51,7 @@ namespace DataAccess.EntityFramework
             return new SuccessResult();
         }
 
-        public virtual IDataResult<IQueryable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter = null)
+        public virtual IDataResult<IQueryable<TEntity>> GetAll(Expression<Func<TEntity, bool>>? filter = null)
         {
             var result = filter ==  null ?
                     _context.Set<TEntity>().AsNoTracking():
@@ -61,8 +64,11 @@ namespace DataAccess.EntityFramework
         {
             var result = _context.Set<TEntity>().AsNoTracking().FirstOrDefault(f => f.Id == id);
             
-            
-            return  new  SuccessDataResult<TEntity>(result);
+            if(result != null)
+                return  new  SuccessDataResult<TEntity>(result);
+
+
+            return new ErrorDataResult<TEntity>();
         }
 
         public virtual async Task<IResult> Update(int id, TEntity entity)

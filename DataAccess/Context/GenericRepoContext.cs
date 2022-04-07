@@ -18,14 +18,9 @@ namespace DataAccess.Context
         {
 
         }
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
 
-        }
-
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Section> Sections { get; set; }
+        public DbSet<Product>? Products { get; set; }
+        public DbSet<Section>? Sections { get; set; }
 
 
 
