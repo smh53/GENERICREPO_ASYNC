@@ -11,15 +11,19 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
+var allowedOrigins = "_allowedOrigins";
+
 // Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+//Context
 builder.Services.AddDbContext<GenericRepoContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection")));
 
-// For Identity
+//Identity
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<GenericRepoContext>()
     .AddDefaultTokenProviders();
@@ -46,9 +50,19 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
     };
 });
+//CORS policy for frontend framework
+builder.Services.AddCors(options => options.AddPolicy(name: allowedOrigins,
+    policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+
+    }
+    ));
 
 
-
+//DI
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductAttachmentService, ProductAttachmentService>();
@@ -63,10 +77,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors(allowedOrigins);
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

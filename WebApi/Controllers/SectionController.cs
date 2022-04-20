@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
-    [Authorize]
+    //[Authorize(Roles ="Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class SectionController : ControllerBase
@@ -29,8 +29,8 @@ namespace WebApi.Controllers
                 return BadRequest(result.Message);
         }
 
-        [HttpGet("GetAllSection")]
-        public IActionResult GetAllSection()
+        [HttpGet("GetAllSections")]
+        public IActionResult GetAllSections()
         {
             var result = _sectionService.GetAll();
 
