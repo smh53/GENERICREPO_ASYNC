@@ -26,13 +26,15 @@ namespace DataAccess.DTOs
         [Compare("Password", ErrorMessage = "Passwords do not match.")]
         public string? ConfirmPassword { get; set; }
 
-        [Required(ErrorMessage = "Role can not be empty")]
+        //[Required(ErrorMessage = "Role can not be empty")]
         public string? RoleName { get; set; }
     }
     public class RegisterResponseDto
     {
         public bool IsSuccessfulRegistration { get; set; }
         public IEnumerable<string>? Errors { get; set; }
+        public string? Token { get; set; }
+        public string EmailConfirmationToken { get; set; }
     }
 
     

@@ -13,5 +13,7 @@ namespace Business.Constants
             public const string SuccessChangePassword = "Password changed successfully";
             public const string ErrorChangePassword = "This user does not exist or you entered wrong password";
         }
+
+       
     }
 }

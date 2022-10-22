@@ -38,26 +38,48 @@ namespace DataAccess.EntityFramework
         public virtual async Task<IResult> Create(TEntity entity)
         {
           
-          await _context.Set<TEntity>().AddAsync(entity);
-          await  _context.SaveChangesAsync();
-            return new SuccessResult();
+          try
+            {
+                await _context.Set<TEntity>().AddAsync(entity);
+                await _context.SaveChangesAsync();
+                return new SuccessResult();
+            }
+          catch (Exception ex)
+            {
+                return new ErrorResult(ex.Message);
+            }
+            
         }
 
         public async Task<IResult> Delete(int id)
         {
-            var entity =  GetById(id);
-            _context.Set<TEntity>().Remove(entity.Data);
-            await _context.SaveChangesAsync();
-            return new SuccessResult();
+            try
+            {
+                var entity = GetById(id);
+                _context.Set<TEntity>().Remove(entity.Data);
+                await _context.SaveChangesAsync();
+                return new SuccessResult();
+            }
+           catch (Exception ex)
+            {
+                return new ErrorResult(ex.Message);
+            }
         }
 
         public virtual IDataResult<IQueryable<TEntity>> GetAll(Expression<Func<TEntity, bool>>? filter = null)
         {
-            var result = filter ==  null ?
-                    _context.Set<TEntity>().AsNoTracking():
-                     _context.Set<TEntity>().Where(filter).AsNoTracking();
-            
-            return new SuccessDataResult<IQueryable<TEntity>>(result);
+            try
+            {
+                var result = filter == null ?
+                   _context.Set<TEntity>().AsNoTracking() :
+                    _context.Set<TEntity>().Where(filter).AsNoTracking();
+
+                return new SuccessDataResult<IQueryable<TEntity>>(result);
+            }
+           catch (Exception ex)
+            {
+                return new ErrorDataResult<IQueryable<TEntity>>(ex.Message);
+            }
         }
 
         public virtual  IDataResult<TEntity> GetById(int id)
@@ -73,9 +95,17 @@ namespace DataAccess.EntityFramework
 
         public virtual async Task<IResult> Update(int id, TEntity entity)
         {
-            _context.Set<TEntity>().Update(entity);
-            await _context.SaveChangesAsync();
-            return new SuccessResult();
+            try
+            {
+                _context.Set<TEntity>().Update(entity);
+                await _context.SaveChangesAsync();
+                return new SuccessResult();
+            }
+            catch(Exception ex)
+            {
+                return new ErrorResult(ex.Message);
+            }
+            
         }
 
         public IEnumerable<TEntity> GetSql(string sql)

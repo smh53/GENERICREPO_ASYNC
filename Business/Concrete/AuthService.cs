@@ -1,11 +1,13 @@
 ﻿using Business.Abstract;
 using Business.Constants;
+using Core.Utilities.Mail;
 using Core.Utilities.Results;
 using DataAccess.Context;
 using DataAccess.DTOs;
 using DataAccess.Entities.User;
 using DataAccess.EntityFramework;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -24,11 +26,15 @@ namespace Business.Concrete
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
-        public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        private readonly SignInManager<User> _signInManager;
+
+        public AuthService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _signInManager = signInManager;
+           
         }
 
         public async Task<IResult> ChangePassword(ChangePasswordDto updatePassword)
@@ -55,6 +61,12 @@ namespace Business.Concrete
             return new ErrorResult();
         }
 
+        public  SuccessDataResult<List<string>> GetAllRoles()
+        {
+            List<string> roles = _roleManager.Roles.Select(x => x.Name).ToList();
+            return new SuccessDataResult<List<string>>(roles);
+        }
+
         public async Task<IDataResult<IdentityResult>> CreateRole(IdentityRole role)
         {
 
@@ -71,31 +83,49 @@ namespace Business.Concrete
         public async Task<IDataResult<LoginResponseDto>> Login(LoginDto loginUser)
         {
             var user = await _userManager.FindByNameAsync(loginUser.UserName);
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginUser.Password))
+            var result = await _signInManager.PasswordSignInAsync(user, loginUser.Password, false, lockoutOnFailure: true);
+            //if(user != null && await _userManager.IsEmailConfirmedAsync(user) && await _userManager.CheckPasswordAsync(user, loginUser.Password))
+            if (result.Succeeded)
             {
-                var userRoles = await _userManager.GetRolesAsync(user);
-
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
+                List<Claim> authClaims = await GetAuthClaims(user);
 
                 var token = GetToken(authClaims);
 
                 return new SuccessDataResult<LoginResponseDto>(new LoginResponseDto
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    ValidTo = token.ValidTo,
-                  
+                    ValidTo = token.ValidTo.ToLocalTime(),
+
                 });
             }
-            return new ErrorDataResult<LoginResponseDto>();
+            if(result.IsLockedOut)
+            {
+                return new ErrorDataResult<LoginResponseDto>("Your account is locked.");
+            }
+            if(result.IsNotAllowed)
+            {
+                return new ErrorDataResult<LoginResponseDto>("Your are not allowed to login.");
+            }
+            
+            return new ErrorDataResult<LoginResponseDto>("Invalid login attempt.");
+        }
+
+        private async Task<List<Claim>> GetAuthClaims(User user)
+        {
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            return authClaims;
         }
 
         public async Task<IDataResult<RegisterResponseDto>> Register(RegisterDto registerUser)
@@ -103,7 +133,6 @@ namespace Business.Concrete
             if (registerUser.FirstName == null || registerUser.LastName == null)
                 return new ErrorDataResult<RegisterResponseDto>(new RegisterResponseDto { IsSuccessfulRegistration = false });
             
-
             var user = new User()
             {
                 Name = registerUser.FirstName,
@@ -111,12 +140,9 @@ namespace Business.Concrete
                 Email = registerUser.Email,
                 UserName = registerUser.UserName
             };
-            if (!await _roleManager.RoleExistsAsync(registerUser.RoleName))
-            {
+            if (registerUser.RoleName == null)
+                registerUser.RoleName = Roles.DefaultRole;
 
-               await _roleManager.CreateAsync(new IdentityRole(registerUser.RoleName));
-
-            }
            
 
             var result = await _userManager.CreateAsync(user, registerUser.Password);
@@ -127,7 +153,15 @@ namespace Business.Concrete
                 return new ErrorDataResult<RegisterResponseDto>(new RegisterResponseDto { Errors = errors });
             }
             await _userManager.AddToRoleAsync(user, registerUser.RoleName);
-            return new SuccessDataResult<RegisterResponseDto>(new RegisterResponseDto { IsSuccessfulRegistration = true });
+            List<Claim> authClaims = await GetAuthClaims(user);
+            var token = GetToken(authClaims);
+            
+            var emailActivationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+           
+        
+           
+
+            return new SuccessDataResult<RegisterResponseDto>(new RegisterResponseDto { IsSuccessfulRegistration = true,Token = new JwtSecurityTokenHandler().WriteToken(token), EmailConfirmationToken = emailActivationToken });
         }
 
         public async Task<IResult> UpdateUser(UpdateUserDto updateUser)
@@ -156,7 +190,7 @@ namespace Business.Concrete
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
                 audience: _configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddHours(3),
+                expires: DateTime.Now.AddMinutes(30),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
@@ -164,6 +198,53 @@ namespace Business.Concrete
             return token;
         }
 
+        public async Task<IDataResult<IdentityResult>> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if(result.Succeeded)
+                return new SuccessDataResult<IdentityResult>(result,"Email activated.");
+            else
+                return new ErrorDataResult<IdentityResult>(result,"Expired link. Try again.");
+        }
+
+
+
+        public async Task<IDataResult<string>> GenerateResetPasswordToken(ResetPasswordDto resetPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPassword.Email);
+            if(user != null)
+            {
+                var passwordResetToken =await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                return new SuccessDataResult<string>(data: passwordResetToken,message: "Successfull");
+            }
+            return new ErrorDataResult<string>();
+        }
+
+        public async Task<IResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+            if(user !=null)
+            {   
+               
+                var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+                if (result.Succeeded)
+                    return new SuccessResult("PASSWORD RESET COMPLETED.");
+                else
+                {
+                    return new ErrorResult(result.Errors.FirstOrDefault().Description);
+                }
+            }
+           
+                return new ErrorResult("ERROR. Try again.");
+        }
+
+        public async Task<IResult> Logout()
+        {          
+            await _signInManager.SignOutAsync();
+            return new SuccessResult();
+        }
     }
 
 

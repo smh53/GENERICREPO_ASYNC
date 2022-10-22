@@ -40,7 +40,7 @@ namespace DataAccess.DTOs
 
     public class ChangeRoleDto
     {
-        [Required(ErrorMessage = "Username is required")]
+        [Required(ErrorMessage = "Email is required")]
         public string? Email { get; set; }
         [Required(ErrorMessage = "Role is required")]
         public string? CurrentRole { get; set; }
@@ -48,6 +48,21 @@ namespace DataAccess.DTOs
         public string? NewRole { get; set; }
         [Required(ErrorMessage = "Password is required")]
         public string? Password { get; set; }
+    }
+
+    public class ResetPasswordDto
+    {
+        [Required(ErrorMessage = "email is required")]
+        public string? Email { get; set; }
+        public string? Token { get; set; }
+        [Required(ErrorMessage = "Password is required")]
+        public string? NewPassword { get; set; }
+
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
+        [Required(ErrorMessage = "Password is required")]
+        public string? ConfirmNewPassword { get; set; }
+
+
     }
 
     

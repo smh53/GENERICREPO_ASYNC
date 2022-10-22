@@ -375,3 +375,5 @@ FodyWeavers.xsd
 /DataAccess/Migrations/20220403114603_Initial.Designer.cs
 /DataAccess/Migrations/20220403114603_Initial.cs
 /.sonarqube/conf
+/WebApi/appsettings.json
+/WebApi/appsettings.Development.json

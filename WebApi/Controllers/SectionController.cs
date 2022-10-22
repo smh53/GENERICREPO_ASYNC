@@ -1,43 +1,38 @@
 ﻿using Business.Abstract;
+using Business.Validation.FluentValidation;
 using DataAccess.Entities.Section;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
-    //[Authorize(Roles ="Admin")]
+   
     [Route("api/[controller]")]
     [ApiController]
     public class SectionController : ControllerBase
     {
         private readonly ISectionService _sectionService;
-
         public SectionController(ISectionService sectionService)
         {
             _sectionService = sectionService;
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPost("CreateSection")]
         public async Task<IActionResult> CreateSection(Section section)
         {
             var result = await _sectionService.Create(section);
-
-            if (result.Success)
-                return Ok(result);
-            else
-                return BadRequest(result.Message);
+           
+                return Ok(result);     
+            
         }
-
+      
         [HttpGet("GetAllSections")]
         public IActionResult GetAllSections()
         {
-            var result = _sectionService.GetAll();
-
-            if (result.Success)
-                return Ok(result);
-            else
-                return BadRequest(result.Message);
+            var result = _sectionService.GetAll();     
+                return Ok(result);              
         }
 
        
@@ -47,34 +42,26 @@ namespace WebApi.Controllers
         {
             var result = _sectionService.GetById(sectionId);
 
-            if (result.Success)
-                return Ok(result);
-            else
-                return BadRequest(result.Message);
+           
+                return Ok(result);            
+          
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("DeleteSection/{sectionId}")]
         public async Task<IActionResult> DeleteSection(int sectionId)
         {
             var result = await _sectionService.Delete(sectionId);
-
-            if (result.Success)
-                return Ok(result);
-            else
-                return BadRequest(result.Message);
+           
+                return Ok(result);            
+          
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("UpdateSection")]
         public async Task<IActionResult> UpdateSection(int sectionId, Section section)
-        {
-
-
+        {       
             var result = await _sectionService.Update(sectionId, section);
-
-            if (result.Success)
-                return Ok(result);
-            else
-                return BadRequest(result.Message);
+         
+                return Ok(result);                    
         }
     }
 }

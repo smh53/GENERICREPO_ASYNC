@@ -14,7 +14,7 @@ namespace Business.Concrete
     {
         public SectionService(GenericRepoContext context): base(context)
         {
-
+            
         }
     }
 }

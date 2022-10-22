@@ -23,26 +23,27 @@ namespace Business.Concrete
            
         }
 
-        public override async Task<IResult> Create(Product product)
+        public override async Task<Core.Utilities.Results.IResult> Create(Product product)
         {          
 
           
             if(product.Files != null && product.Files.Length > 0)
             {
                 var productAttachments = new List<ProductAttachment>();
-                var uploadedfileList = FileUpload.MultipleAttachmentUpload(product.Files, "Product");
-                foreach (var uploadedFile in uploadedfileList)
+                var uploadedFileList = FileUpload.MultipleAttachmentUpload(product.Files, "Product");
+                foreach (var uploadedFile in uploadedFileList)
                 {
                     productAttachments.Add(new ProductAttachment { FileName = uploadedFile.FileName, FileType = uploadedFile.FileType, FilePath = uploadedFile.FilePath });
                 }
                 product.ProductAttachments = productAttachments;
             }
-            await base.Create(product);
-            
-            return new SuccessResult();
+           var result = await base.Create(product);
+            if(result.Success)
+                return new SuccessResult();
+            return new ErrorResult(result.Message);
         }
 
-        public override async Task<IResult> Update(int id, Product product)
+        public override async Task<Core.Utilities.Results.IResult> Update(int id, Product product)
         {
 
             if (product.Files != null && product.Files.Length > 0)
@@ -57,10 +58,12 @@ namespace Business.Concrete
             }
 
 
-            await base.Update(id,product);
+           var finalResult = await base.Update(id,product);
+            if (finalResult.Success)
+                return new SuccessResult();
+            return new ErrorResult();
 
-           
-            return new SuccessResult();
+
         }
 
         public override IDataResult<IQueryable<Product>> GetAll(Expression<Func<Product, bool>>? filter = null)
